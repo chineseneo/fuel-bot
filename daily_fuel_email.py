@@ -24,6 +24,7 @@ def get_u98_prices():
         data = response.json()
         print(f"Total stations fetched: {len(data.get('stations', []))}")
     except Exception as e:
+        print(f"Exception: {str(e)}")
         return [{"brand": "Error", "name": "PetrolSpy fetch failed", "suburb": str(e), "price": 0.0}]
 
     stations = []
