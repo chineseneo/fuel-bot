@@ -22,6 +22,7 @@ def get_u98_prices():
         response = requests.get(url, params=params, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
+        print(f"Total stations fetched: {len(data.get('stations', []))}")
     except Exception as e:
         return [{"brand": "Error", "name": "PetrolSpy fetch failed", "suburb": str(e), "price": 0.0}]
 
@@ -29,13 +30,15 @@ def get_u98_prices():
     for station in data.get("stations", []):
         brand = station.get("brand", "").strip()
         price = station.get("price")
-        fuel_type = station.get("fuelType")
+        fuel_type = station.get("fuelType", "")
         name = station.get("name", "")
         suburb = station.get("suburb", "")
 
+        print(brand, fuel_type, price)  # Debugging line
+
         if (
             brand in ['7-Eleven', 'BP', 'Coles Express']
-            and fuel_type == "P98"
+            and "98" in fuel_type.upper()
             and price is not None
         ):
             stations.append({
