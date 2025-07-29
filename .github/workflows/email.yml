@@ -1,0 +1,29 @@
+name: Daily Fuel Price Email
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # UTC 22:00 = 08:00 AEST (Melbourne)
+  workflow_dispatch:       # Allow manual runs
+
+jobs:
+  send_email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run fuel price email script
+        env:
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+        run: python daily_fuel_email.py
