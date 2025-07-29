@@ -22,6 +22,7 @@ def get_u98_prices():
         response = requests.get(url, params=params, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
+        print(f"response.json(): {data}")
         print(f"Total stations fetched: {len(data.get('stations', []))}")
     except Exception as e:
         print(f"Exception: {str(e)}")
