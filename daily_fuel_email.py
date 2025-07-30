@@ -9,8 +9,8 @@ import os
 def get_u98_prices():
     # Coordinates for Wantirna South bounding box
     params = {
-        "neLat": -37.85, "neLng": 145.26,
-        "swLat": -37.90, "swLng": 145.18,
+        "neLat": -37.85, "neLng": 145.27,
+        "swLat": -37.88, "swLng": 145.2,
     }
 
     url = "https://petrolspy.com.au/webservice-1/station/box"
@@ -23,32 +23,32 @@ def get_u98_prices():
         response.raise_for_status()
         data = response.json()
         print(f"response.json(): {data}")
-        print(f"Total stations fetched: {len(data.get('stations', []))}")
+        print(f"Total stations fetched: {len(data.get('message').get('list', []))}")
     except Exception as e:
         print(f"Exception: {str(e)}")
         return [{"brand": "Error", "name": "PetrolSpy fetch failed", "suburb": str(e), "price": 0.0}]
 
     stations = []
-    for station in data.get("stations", []):
+    for station in data.get("message").get("list", []):
         brand = station.get("brand", "").strip()
-        price = station.get("price")
-        fuel_type = station.get("fuelType", "")
         name = station.get("name", "")
         suburb = station.get("suburb", "")
 
-        print(brand, fuel_type, price)  # Debugging line
+        # Debug: Print station name and prices
+        print(f"Checking station: {name} ({brand})")
+        for ftype, fdata in station.get("prices", {}).items():
+            print(f"  Fuel type: {ftype}, Price: {fdata.get('amount')}")
 
-        if (
-            brand in ['7-Eleven', 'BP', 'Coles Express']
-            and "98" in fuel_type.upper()
-            and price is not None
-        ):
-            stations.append({
-                "brand": brand,
-                "name": name,
-                "suburb": suburb,
-                "price": float(price),
-            })
+        if brand.upper() in ['SEVENELEVEN', 'BP', 'SHELL'] and "U98" in station.get("prices", {}):
+            price_data = station["prices"]["U98"]
+            amount = price_data.get("amount")
+            if amount:
+                stations.append({
+                    "brand": brand,
+                    "name": name,
+                    "suburb": suburb,
+                    "price": float(amount),
+                })
 
     stations = sorted(stations, key=lambda x: x['price'])
     return stations
