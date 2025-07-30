@@ -86,7 +86,7 @@ def generate_chart(cache):
 
     for name in station_names:
         prices = [cache.get(day, {}).get(name, None) for day in date_keys]
-        print(f"plt.plot(data_keys: {data_keys}, prices: {prices}, label: {name})")
+        print(f"plt.plot(date_keys: {date_keys}, prices: {prices}, label: {name})")
         plt.plot(date_keys, prices, label=name)
 
     plt.xticks(rotation=45)
