@@ -21,9 +21,23 @@ jobs:
       - name: Install requirements
         run: pip install -r requirements.txt
 
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: fuel_cache.json
+          key: fuel-cache-${{ github.run_id }}
+          restore-keys: |
+            fuel-cache-
+
       - name: Run fuel price email script
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
         run: python daily_fuel_email.py
+
+      - name: Save updated cache
+        uses: actions/cache/save@v4
+        with:
+          path: fuel_cache.json
+          key: fuel-cache-${{ github.run_id }}
