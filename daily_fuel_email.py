@@ -30,8 +30,8 @@ def get_u98_prices():
 
     stations = []
     for station in data.get("message").get("list", []):
-        brand = station.get("brand", "").strip()
         name = station.get("name", "")
+        brand = station.get("brand", "").strip()
         suburb = station.get("suburb", "")
 
         # Debug: Print station name and prices
@@ -39,9 +39,8 @@ def get_u98_prices():
         for ftype, fdata in station.get("prices", {}).items():
             print(f"  Fuel type: {ftype}, Price: {fdata.get('amount')}")
 
-        if brand.upper() in ['SEVENELEVEN', 'BP', 'SHELL'] and "U98" in station.get("prices", {}):
-            price_data = station["prices"]["U98"]
-            amount = price_data.get("amount")
+        if name in target_stations and "U98" in station.get("prices", {}):
+            amount = station["prices"]["U98"].get("amount")
             if amount:
                 stations.append({
                     "brand": brand,
