@@ -28,6 +28,11 @@ def get_u98_prices():
         print(f"Exception: {str(e)}")
         return [{"brand": "Error", "name": "PetrolSpy fetch failed", "suburb": str(e), "price": 0.0}]
 
+    target_stations = [
+        "Coles Express Wantirna South",
+        "7-Eleven Wantirna South",
+        "BP Wantirna South"
+    ]
     stations = []
     for station in data.get("message").get("list", []):
         name = station.get("name", "")
