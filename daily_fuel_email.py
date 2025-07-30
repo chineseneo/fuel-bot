@@ -49,6 +49,7 @@ def get_u98_prices():
     stations = []
     today_str = datetime.date.today().isoformat()
     cache = get_cached_data()
+    print(f"loaded cache: {cache}")
     if today_str not in cache:
         cache[today_str] = {}
 
