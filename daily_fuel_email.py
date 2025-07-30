@@ -38,6 +38,7 @@ def get_u98_prices():
         name = station.get("name", "")
         brand = station.get("brand", "").strip()
         suburb = station.get("suburb", "")
+        address = station.get("address", "")
 
         # Debug: Print station name and prices
         print(f"Checking station: {name} ({brand})")
@@ -51,6 +52,7 @@ def get_u98_prices():
                     "brand": brand,
                     "name": name,
                     "suburb": suburb,
+                    "address": address,
                     "price": float(amount),
                 })
 
@@ -78,8 +80,8 @@ def send_email(content):
 if __name__ == "__main__":
     stations = get_u98_prices()
     if stations:
-        body = "Cheapest U98 in Wantirna South today:\n\n" + "\n".join(
-            [f"{s['brand']} - {s['name']} ({s['suburb']}): {s['price']} ¢/L" for s in stations]
+        body = "Prices of U98 fuel for selected stations in Wantirna South today:\n\n" + "\n".join(
+            [f"{s['brand']} - {s['name']} - {s['address']} ({s['suburb']}): {s['price']} ¢/L" for s in stations]
         )
     else:
         body = "No matching U98 prices found today."
