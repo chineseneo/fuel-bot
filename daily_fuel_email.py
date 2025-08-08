@@ -71,7 +71,7 @@ def get_u98_prices():
     if today_str not in cache:
         cache[today_str] = {}
 
-    for station in data.get("stations", []):
+    for station in data.get("message", {}).get("list", []):
         name = station.get("name", "")
         brand = station.get("brand", "").strip()
         address = station.get("address", "")
