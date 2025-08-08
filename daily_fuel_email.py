@@ -16,8 +16,8 @@ HISTORY_DAYS = 14
 DISPLAY_NAME_MAP = {
     "Coles Express Wantirna South": "Coles",
     "BP Wantirna South": "BP",
-    ("7-Eleven Wantirna South", "1247 High Street Road  "): "711 M3",
-    ("7-Eleven Wantirna South", "401 Burwood Highway & Stud Road  "): "711 Westfield",
+    ("7-Eleven Wantirna South", "1247 High Street Road "): "711 M3",
+    ("7-Eleven Wantirna South", "401 Burwood Highway & Stud Road "): "711 Westfield",
 }
 
 def get_display_name(name, address):
