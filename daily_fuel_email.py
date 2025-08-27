@@ -61,6 +61,7 @@ def get_u98_prices():
 
     target_stations = [
         "Coles Express Wantirna South",
+        "Reddy Express Wantirna South",
         "7-Eleven Wantirna South",
         "BP Wantirna South"
     ]
