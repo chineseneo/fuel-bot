@@ -15,6 +15,7 @@ HISTORY_DAYS = 14
 # Display name mapping
 DISPLAY_NAME_MAP = {
     "Coles Express Wantirna South": "Coles",
+    "Reddy Express Wantirna South": "Coles",   # new name maps to Coles
     "BP Wantirna South": "BP",
     ("7-Eleven Wantirna South", "1247 High Street Road "): "711 M3",
     ("7-Eleven Wantirna South", "401 Burwood Highway & Stud Road "): "711 Westfield",
