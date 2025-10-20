@@ -10,7 +10,7 @@ from email.mime.image import MIMEImage
 import matplotlib.pyplot as plt
 
 CACHE_FILE = "fuel_cache.json"
-HISTORY_DAYS = 28
+HISTORY_DAYS = 84
 
 # Display name mapping
 DISPLAY_NAME_MAP = {
