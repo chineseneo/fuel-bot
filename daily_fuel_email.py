@@ -93,21 +93,29 @@ def get_u98_prices():
     stations = sorted(stations, key=lambda x: x['price'])
     return stations, cache
 
-def generate_chart(cache):
+def generate_chart(cache, days, filename, title_suffix):
     plt.figure(figsize=(8, 4))
     station_names = ["Coles", "711 M3", "711 Westfield", "BP"]
-    date_keys = sorted(cache.keys())[-HISTORY_DAYS:]
+
+    # Use integer x positions and only show a subset of date labels to avoid clutter
+    date_keys = sorted(cache.keys())[-days:]
+    x_vals = list(range(len(date_keys)))
 
     for name in station_names:
         prices = [cache.get(day, {}).get(name, None) for day in date_keys]
-        plt.plot(date_keys, prices, marker="o", label=name)
+        plt.plot(x_vals, prices, marker="o", label=name)
 
-    plt.xticks(rotation=45)
-    plt.title("U98 Fuel Price Trend (Last 2 Weeks)")
+    # Choose at most ~8 tick labels on the x-axis
+    if len(x_vals) > 0:
+        step = max(1, len(x_vals) // 8)
+        tick_idx = list(range(0, len(x_vals), step))
+        plt.xticks(tick_idx, [date_keys[i] for i in tick_idx], rotation=45)
+
+    plt.title(f"U98 Price Trend ({title_suffix})")
     plt.ylabel("¢/L")
     plt.legend()
     plt.tight_layout()
-    plt.savefig("trend.png")
+    plt.savefig(filename)
     plt.close()
 
 def send_email(content):
