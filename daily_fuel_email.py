@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 CACHE_FILE = "fuel_cache.json"
 HISTORY_DAYS = 84
+PZT3_API_URL = "https://projectzerothree.info/api.php?format=json"
 
 # Display name mapping
 DISPLAY_NAME_MAP = {
@@ -41,7 +42,11 @@ def save_cache(data):
 def prune_cache(cache):
     today = datetime.date.today()
     cutoff = today - datetime.timedelta(days=HISTORY_DAYS)
-    return {day: data for day, data in cache.items() if datetime.date.fromisoformat(day) >= cutoff}
+    return {
+        day: data
+        for day, data in cache.items()
+        if datetime.date.fromisoformat(day) >= cutoff
+    }
 
 def get_u98_prices():
     params = {
@@ -57,6 +62,7 @@ def get_u98_prices():
         response.raise_for_status()
         data = response.json()
     except Exception as e:
+        print(f"PetrolSpy API error: {e}")
         return [{"brand": "Error", "name": "PetrolSpy fetch failed", "price": 0.0}], {}
 
     target_stations = [
@@ -82,20 +88,76 @@ def get_u98_prices():
             amount = station["prices"]["U98"].get("amount")
             if amount:
                 display_name = get_display_name(name, address)
+                price_val = float(amount)
                 stations.append({
                     "brand": brand,
                     "name": display_name,
-                    "price": float(amount),
+                    "price": price_val,
                 })
-                cache[today_str][display_name] = float(amount)
+                cache[today_str][display_name] = price_val
 
     save_cache(cache)
     stations = sorted(stations, key=lambda x: x['price'])
     return stations, cache
 
+def get_vic_lowest_from_pzt3(fuel_type="U98"):
+    """
+    Query ProjectZeroThree and return the cheapest fuel station in VIC
+    for the given fuel_type (default U98).
+
+    Returns a dict like:
+    {
+        "price": 134.7,
+        "name": "11-Seven Newcomb",
+        "suburb": "Newcomb",
+        "type": "U98",
+        "postcode": "3219",
+        "lat": -38.173687,
+        "lng": 144.401947,
+    }
+    or None if nothing found / API error.
+    """
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        resp = requests.get(PZT3_API_URL, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"ProjectZeroThree API error: {e}")
+        return None
+
+    lowest = None
+
+    for region in data.get("regions", []):
+        for p in region.get("prices", []):
+            try:
+                if p.get("state") != "VIC":
+                    continue
+                if p.get("type") != fuel_type:
+                    continue
+
+                price_val = float(p.get("price"))
+            except (TypeError, ValueError):
+                continue
+
+            if lowest is None or price_val < lowest["price"]:
+                lowest = {
+                    "price": price_val,
+                    "name": p.get("name"),
+                    "suburb": p.get("suburb"),
+                    "type": p.get("type"),
+                    "postcode": p.get("postcode"),
+                    "lat": p.get("lat"),
+                    "lng": p.get("lng"),
+                }
+
+    return lowest
+
 def generate_chart(cache):
     plt.figure(figsize=(8, 4))
-    station_names = ["Coles", "711 M3", "711 Westfield", "BP"]
+
+    # Add "VIC Lowest" as a series in the chart
+    station_names = ["Coles", "711 M3", "711 Westfield", "BP", "VIC Lowest"]
     date_keys = sorted(cache.keys())[-HISTORY_DAYS:]
 
     # Use integer x positions so we can thin out labels
@@ -141,13 +203,46 @@ def send_email(content):
 
 if __name__ == "__main__":
     stations, cache = get_u98_prices()
+
+    # Get VIC-wide lowest U98 and store in cache for today's date as "VIC Lowest"
+    vic_lowest = get_vic_lowest_from_pzt3("U98")
+    if vic_lowest:
+        today_str = datetime.date.today().isoformat()
+        if today_str not in cache:
+            cache[today_str] = {}
+        cache[today_str]["VIC Lowest"] = vic_lowest["price"]
+        # Persist the updated cache
+        cache = prune_cache(cache)
+        save_cache(cache)
+
+    # Now generate chart including VIC Lowest series
     generate_chart(cache)
 
+    # Build email body
     if stations:
-        body = "Prices of U98 fuel today:\n\n" + "\n".join(
-            [f"{s['name']}: {s['price']} ¢/L" for s in stations]
-        )
+        body_lines = [
+            "Prices of U98 fuel today (Wantirna South area):",
+            "",
+        ]
+        body_lines += [
+            f"{s['name']}: {s['price']} ¢/L"
+            for s in stations
+        ]
     else:
-        body = "No matching U98 prices found today."
+        body_lines = ["No matching U98 prices found today in Wantirna South."]
 
+    if vic_lowest:
+        body_lines += [
+            "",
+            "Cheapest U98 in VIC (ProjectZeroThree):",
+            f"{vic_lowest['price']} ¢/L at {vic_lowest['name']} "
+            f"({vic_lowest['suburb']} {vic_lowest.get('postcode', '')})"
+        ]
+    else:
+        body_lines += [
+            "",
+            "Cheapest U98 in VIC (ProjectZeroThree): unavailable (API error or no VIC U98 entries)."
+        ]
+
+    body = "\n".join(body_lines)
     send_email(body)
